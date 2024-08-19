@@ -1,0 +1,13 @@
+export SCRIPT_VERSION="1.0.0"
+export DB_INTRANET="db_000800"
+export HOST_ADDRESS=""
+export PROD_SELECTED=""
+export DLPD=""
+export DLPD_NO_ZEROS=""
+export LINK=""
+
+export CYAN="\e[36m"
+export GREEN="\e[32m"
+export YELLOW="\e[33m"
+export RED="\e[31m"
+export RESET="\e[0m"
