@@ -264,7 +264,7 @@ insere_dados_DLPD() {
         a.nu_telefone_empresa
     FROM db_ar.tb_pessoa a
     JOIN db_gol.tb_ibge_municipio b
-    ON a.tx_cidade_empresa = b.nome_munic
+    ON TRIM(a.tx_cidade_empresa) = TRIM(b.nome_munic)
     WHERE id_pessoa = $DLPD_NO_ZEROS"
 
     RESULT=$(psql -U postgres -d $DB_INTRANET -t -A -F";" -c "$SELECT_EMPRESA_INTRANET")
