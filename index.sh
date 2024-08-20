@@ -1,5 +1,5 @@
 source ./config/var.sh
-source ./functions/functions.sh
+source ./functions/fc_newdlpd.sh
 source ./functions/fc_database.sh
 
 layout
