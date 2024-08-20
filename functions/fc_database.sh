@@ -366,3 +366,8 @@ atualiza_licenca_axm() {
 
     return 0
 }
+
+export -f executa_altera_empresa
+export -f insere_contrato
+export -f insere_dados_DLPD
+export -f atualiza_licenca_axm

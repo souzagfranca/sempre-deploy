@@ -59,14 +59,14 @@ escolhe_servidor() {
 
 altera_inc_empresa() {
     ssh sempre@$HOST_ADDRESS <<EOF
-    awk '
+awk '
 /switch\(/ {in_switch=1}
 in_switch && /{/ {
-	print
-	print "            case '\''TESTE'\'': return 9800;"
-	print ""
-	in_switch=0
-	next
+    print
+    print "            case '\''$LINK'\'': return $DLPD_NO_ZEROS;"
+    print ""
+    in_switch=0
+    next
 }
 {print}
 ' /var/www/html/sempre/includes/ws/inc_empresa.php > /var/www/html/sempre/includes/ws/inc_empresa_temp.php
