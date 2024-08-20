@@ -73,11 +73,6 @@ in_switch && /{/ {
 mv /var/www/html/sempre/includes/ws/inc_empresa_temp.php /var/www/html/sempre/includes/ws/inc_empresa.php
 chmod -Rf 777 /var/www/html/sempre/includes/ws/inc_empresa.php
 EOF
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    return 0
 }
 
 escolhe_produto() {
@@ -112,11 +107,18 @@ escolhe_produto() {
     done
 }
 
-rollback_pastas() {
+rollback() {
     ssh sempre@$HOST_ADDRESS <<EOF
     rm -r /var/www/html/sempre/_lib/file/doc/$DLPD
     rm -r /var/www/html/sempre/_lib/file/img/$DLPD
     rm -r /var/www/html/sempre/_FISCAL/$DLPD
+EOF
+}
+
+rollback_db() {
+    ssh sempre@$HOST_ADDRESS <<EOF
+    psql -U postgres -c "DROP DATABASE IF EXISTS db_$DLPD;"
+    rm -f /tmp/${PROD_SELECTED}_backup.dump
 EOF
 }
 
@@ -132,12 +134,6 @@ cria_pastas() {
     rename 's/9000/${DLPD_NO_ZEROS}/' CTE9000 MDFE9000 NFCE9000 NFE9000 NFSE9000 tmp9000
     chmod -Rf 777 /var/www/html/sempre/_FISCAL/$DLPD
 EOF
-    if [ $? -ne 0 ]; then
-        rollback_pastas
-        return 1
-    fi
-
-    return 0
 }
 
 remove_backup_stapp21() {
@@ -151,31 +147,13 @@ cria_db() {
     pg_dump -U postgres -Fc $PROD_SELECTED -f /tmp/${PROD_SELECTED}_backup.dump
     mv /tmp/${PROD_SELECTED}_backup.dump /var/www/html/backups/
 EOF
-    if [ $? -ne 0 ]; then
-        rollback_pastas
-        remove_backup_stapp21
-        return 1
-    fi
-
     ssh sempre@$HOST_ADDRESS <<EOF
     wget http://172.16.1.19/backups/${PROD_SELECTED}_backup.dump -O /tmp/${PROD_SELECTED}_backup.dump
     psql -U postgres -c "CREATE DATABASE db_$DLPD WITH OWNER postgres;"
     pg_restore -U postgres -d db_$DLPD /tmp/${PROD_SELECTED}_backup.dump
     rm -f /tmp/${PROD_SELECTED}_backup.dump
 EOF
-    if [ $? -ne 0 ]; then
-        remove_backup_stapp21
-        rollback_pastas
-        ssh sempre@$HOST_ADDRESS <<EOF
-        psql -U postgres -c "DROP DATABASE IF EXISTS db_$DLPD;"
-        rm -f /tmp/${PROD_SELECTED}_backup.dump
-EOF
-        return 1
-    fi
-
     remove_backup_stapp21
-
-    return 0
 }
 
 export -f layout

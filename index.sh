@@ -30,7 +30,7 @@ echo
 
 escolhe_produto
 if [ $? -eq 0 ]; then
-    echo -e "Você escolheu o produto ${GREEN}⮞ $PROD_SELECTED${RESET}"
+    echo -e "Você escolheu o produto ${GREEN}⮞ $produto${RESET}"
 else
     echo "${RED}Opção inválida. Tente novamente. ❌${RESET}"
 fi
@@ -41,6 +41,7 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}⮞ Estrutura de pasta concluída com sucesso ✓${RESET}"
 else
     echo -e "${RED}Erro ao criar pastas. O processo foi desfeito ❌${RESET}"
+    rollback
     exit 1
 fi
 echo
@@ -50,6 +51,8 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}⮞ Banco de dados criado e restaurado com sucesso ✓${RESET}"
 else
     echo -e "${RED}Erro ao criar banco de dados ❌${RESET}"
+    rollback
+    rollback_db
     exit 1
 fi
 echo

@@ -212,11 +212,6 @@ END;
 \$\$;
 SQL
 EOF
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    return 0
 }
 
 insere_contrato() {
@@ -236,11 +231,6 @@ insere_contrato() {
     );
 SQL
 EOF
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    return 0
 }
 
 insere_dados_DLPD() {
@@ -324,12 +314,6 @@ insere_dados_DLPD() {
     ssh sempre@$HOST_ADDRESS <<EOF
     psql -U postgres -d db_$DLPD -c "$UPDATE_QUERY"
 EOF
-    if [ $? -ne 0 ]; then
-        return 1
-        exit 1
-    fi
-
-    return 0
 }
 
 atualiza_licenca_axm() {
@@ -355,16 +339,10 @@ atualiza_licenca_axm() {
     
     $QUERY_UPDATE_URL
     "
-
+    
     psql -U postgres -d $DB -c "$SQL"
     psql -U postgres -d $DB_INTRANET -c "$QUERY_UPDATE_DB_INTRANET"
 
-    if [ $? -ne 0 ]; then
-        return 1
-        exit 1
-    fi
-
-    return 0
 }
 
 export -f executa_altera_empresa
