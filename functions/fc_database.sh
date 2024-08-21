@@ -233,25 +233,26 @@ SQL
 EOF
 }
 
-insere_dados_DLPD() {
+obtem_dados_dlpd(){
     SELECT_EMPRESA_INTRANET="
     SELECT 
-        a.tx_razao_social,
-        a.tx_nome_fantasia,
-        a.nu_cnpj,
-        a.nu_inscricao_estadual,
-        a.nu_cnae,
-        a.tx_nome_empresario,
-        a.nu_cpf,
-        a.nu_cep,
-        a.tx_endereco_empresa,
-        a.nu_endereco_empresa_numero,
-        a.tx_endereco_complemento_empresa,
-        a.tx_bairro_empresa,
-        b.nome_munic,
-        b.ibge_cod_mun,
-        a.tx_email_empresa,
-        a.nu_telefone_empresa
+        TRIM(REGEXP_REPLACE(a.tx_razao_social, '[;(),\[\]{}]', '', 'g')) AS tx_razao_social,
+        TRIM(REGEXP_REPLACE(a.tx_nome_fantasia, '[;(),\[\]{}]', '', 'g')) AS tx_nome_fantasia,
+        TRIM(REGEXP_REPLACE(a.nu_cnpj, '[;(),\[\]{}]', '', 'g')) AS nu_cnpj,
+        TRIM(REGEXP_REPLACE(a.nu_inscricao_estadual, '[;(),\[\]{}]', '', 'g')) AS nu_inscricao_estadual,
+        TRIM(REGEXP_REPLACE(a.nu_cnae, '[;(),\[\]{}]', '', 'g')) AS nu_cnae,
+        TRIM(REGEXP_REPLACE(a.tx_nome_empresario, '[;(),\[\]{}]', '', 'g')) AS tx_nome_empresario,
+        TRIM(REGEXP_REPLACE(a.nu_cpf, '[;(),\[\]{}]', '', 'g')) AS nu_cpf,
+        TRIM(REGEXP_REPLACE(a.nu_cep, '[;(),\[\]{}]', '', 'g')) AS nu_cep,
+        TRIM(REGEXP_REPLACE(a.tx_endereco_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_endereco_empresa,
+        TRIM(REGEXP_REPLACE(a.nu_endereco_empresa_numero, '[;(),\[\]{}]', '', 'g')) AS nu_endereco_empresa_numero,
+        TRIM(REGEXP_REPLACE(a.tx_endereco_complemento_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_endereco_complemento_empresa,
+        TRIM(REGEXP_REPLACE(a.tx_bairro_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_bairro_empresa,
+        TRIM(REGEXP_REPLACE(b.nome_munic, '[;(),\[\]{}]', '', 'g')) AS nome_munic,
+        TRIM(REGEXP_REPLACE(b.sigla_uf, '[;(),\[\]{}]', '', 'g')) AS sigla_uf,
+        TRIM(REGEXP_REPLACE(b.ibge_cod_mun, '[;(),\[\]{}]', '', 'g')) AS ibge_cod_mun,
+        TRIM(REGEXP_REPLACE(a.tx_email_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_email_empresa,
+        TRIM(REGEXP_REPLACE(a.nu_telefone_empresa, '[^0-9]', '', 'g')) AS nu_telefone_empresa
     FROM db_ar.tb_pessoa a
     JOIN db_gol.tb_ibge_municipio b
     ON TRIM(a.tx_cidade_empresa) = TRIM(b.nome_munic)
@@ -264,40 +265,56 @@ insere_dados_DLPD() {
         exit 1
     fi
 
-    IFS=';' read -r -a DATA <<<"$RESULT"
+    echo "$RESULT"
+
+}
+
+verifica_cnae(){
+
+    DATA=$(obtem_dados_dlpd)
+    IFS=';' read -r -a DATA_ARRAY <<<"$DATA"
 
     SELECT_CNAE="
     SELECT
 	    id_cnae,
 	    descricao
     FROM db_gol.tb_cnae 
-    WHERE id_cnae = '${FORMAT_DATA[4]}'"
+    WHERE id_cnae = '${DATA_ARRAY[4]}'"
 
     RESULT_SELECT_CNAE=$(ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD -c \"$SELECT_CNAE\" -t -A")
 
     if [ -z "$RESULT_SELECT_CNAE" ]; then
-        INSERT_CNAE="INSERT INTO db_gol.tb_cnae(descricao, id_cnae, dt_inc, dt_atu, login) VALUES ('OUTROS', '${FORMAT_DATA[4]}', NOW(), NULL, 'admin');"
+        INSERT_CNAE="INSERT INTO db_gol.tb_cnae(descricao, id_cnae, dt_inc, dt_atu, login) VALUES ('OUTROS', '${DATA_ARRAY[4]}', NOW(), NULL, 'admin');"
         ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD -c \"$INSERT_CNAE\""
     fi
+}
+
+insere_dados_DLPD() {
+
+    DATA=$(obtem_dados_dlpd)
+    IFS=';' read -r -a DATA_ARRAY <<<"$DATA"
+
+    verifica_cnae
 
     UPDATE_QUERY="
     UPDATE db_gol.tb_empresa SET
-	    razao_social=REPLACE('${FORMAT_DATA[0]}', '''', ''''''),
-	    nm_fantasia=REPLACE('${FORMAT_DATA[1]}', '''', ''''''),
-	    cnpj=REPLACE('${FORMAT_DATA[2]}', '''', ''''''),
-	    insc_estadual=REPLACE('${FORMAT_DATA[3]}', '''', ''''''),
-        cnae=REPLACE('${FORMAT_DATA[4]}', '''', ''''''),
-        responsavel=REPLACE('${FORMAT_DATA[5]}', '''', ''''''),
-        cpf_responsavel=REPLACE('${FORMAT_DATA[6]}', '''', ''''''),
-        cep=REPLACE('${FORMAT_DATA[7]}', '''', ''''''),
-        logradouro=REPLACE('${FORMAT_DATA[8]}', '''', ''''''),
-        nr_endereco=REPLACE('${FORMAT_DATA[9]}', '''', ''''''),
-        complemento_endereco=REPLACE('${FORMAT_DATA[10]}', '''', ''''''),
-        bairro=REPLACE('${FORMAT_DATA[11]}', '''', ''''''),
-        cidade=REPLACE('${FORMAT_DATA[12]}', '''', ''''''),
-        ibge_cod_mun=REPLACE('${FORMAT_DATA[13]}', '''', ''''''),
-        email=REPLACE('${FORMAT_DATA[14]}', '''', ''''''),
-        telefone=REGEXP_REPLACE('${FORMAT_DATA[15]}', '[^0-9]', '', 'g')
+	    razao_social='${DATA_ARRAY[0]}',
+	    nm_fantasia='${DATA_ARRAY[1]}',
+	    cnpj='${DATA_ARRAY[2]}',
+	    insc_estadual='${DATA_ARRAY[3]}',
+        cnae='${DATA_ARRAY[4]}',
+        responsavel='${DATA_ARRAY[5]}',
+        cpf_responsavel='${DATA_ARRAY[6]}',
+        cep='${DATA_ARRAY[7]}',
+        logradouro='${DATA_ARRAY[8]}',
+        nr_endereco='${DATA_ARRAY[9]}',
+        complemento_endereco='${DATA_ARRAY[10]}',
+        bairro='${DATA_ARRAY[11]}',
+        cidade='${DATA_ARRAY[12]}',
+        uf='${DATA_ARRAY[13]}',
+        ibge_cod_mun='${DATA_ARRAY[14]}',
+        email='${DATA_ARRAY[15]}',
+        telefone='${DATA_ARRAY[16]}'
     WHERE id_empresa = $DLPD_NO_ZEROS"
 
     ssh sempre@$HOST_ADDRESS <<EOF

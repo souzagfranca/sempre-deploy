@@ -45,7 +45,6 @@ escolhe_servidor() {
         ["stapp26"]="172.16.1.219"
     )
 
-    echo "Escolha o servidor onde deseja instalar o DLPD $DLPD:"
     select server in "${!servers[@]}"; do
         if [[ -n "$server" ]]; then
             HOST_ADDRESS="${servers[$server]}"
