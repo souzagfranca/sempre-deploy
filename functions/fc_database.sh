@@ -266,17 +266,6 @@ insere_dados_DLPD() {
 
     IFS=';' read -r -a DATA <<<"$RESULT"
 
-    format_sql() {
-        echo "$1" | sed "s/'/''/g"
-    }
-
-    FORMAT_DATA=()
-    for item in "${DATA[@]}"; do
-        FORMAT_DATA+=("$(format_sql "$item")")
-    done
-
-    FORMAT_TELEFONE=$(echo "${FORMAT_DATA[15]}" | sed 's/[()-]//g; s/ //g')
-
     SELECT_CNAE="
     SELECT
 	    id_cnae,
@@ -293,22 +282,22 @@ insere_dados_DLPD() {
 
     UPDATE_QUERY="
     UPDATE db_gol.tb_empresa SET
-	    razao_social='${FORMAT_DATA[0]}',
-	    nm_fantasia='${FORMAT_DATA[1]}',
-	    cnpj='${FORMAT_DATA[2]}',
-	    insc_estadual='${FORMAT_DATA[3]}',
-        cnae='${FORMAT_DATA[4]}',
-        responsavel='${FORMAT_DATA[5]}',
-        cpf_responsavel='${FORMAT_DATA[6]}',
-        cep='${FORMAT_DATA[7]}',
-        logradouro='${FORMAT_DATA[8]}',
-        nr_endereco='${FORMAT_DATA[9]}',
-        complemento_endereco='${FORMAT_DATA[10]}',
-        bairro='${FORMAT_DATA[11]}',
-        cidade='${FORMAT_DATA[12]}',
-        ibge_cod_mun='${FORMAT_DATA[13]}',
-        email='${FORMAT_DATA[14]}',
-        telefone='$FORMAT_TELEFONE'
+	    razao_social=REPLACE('${FORMAT_DATA[0]}', '''', ''''''),
+	    nm_fantasia=REPLACE('${FORMAT_DATA[1]}', '''', ''''''),
+	    cnpj=REPLACE('${FORMAT_DATA[2]}', '''', ''''''),
+	    insc_estadual=REPLACE('${FORMAT_DATA[3]}', '''', ''''''),
+        cnae=REPLACE('${FORMAT_DATA[4]}', '''', ''''''),
+        responsavel=REPLACE('${FORMAT_DATA[5]}', '''', ''''''),
+        cpf_responsavel=REPLACE('${FORMAT_DATA[6]}', '''', ''''''),
+        cep=REPLACE('${FORMAT_DATA[7]}', '''', ''''''),
+        logradouro=REPLACE('${FORMAT_DATA[8]}', '''', ''''''),
+        nr_endereco=REPLACE('${FORMAT_DATA[9]}', '''', ''''''),
+        complemento_endereco=REPLACE('${FORMAT_DATA[10]}', '''', ''''''),
+        bairro=REPLACE('${FORMAT_DATA[11]}', '''', ''''''),
+        cidade=REPLACE('${FORMAT_DATA[12]}', '''', ''''''),
+        ibge_cod_mun=REPLACE('${FORMAT_DATA[13]}', '''', ''''''),
+        email=REPLACE('${FORMAT_DATA[14]}', '''', ''''''),
+        telefone=REGEXP_REPLACE('${FORMAT_DATA[15]}', '[^0-9]', '', 'g')
     WHERE id_empresa = $DLPD_NO_ZEROS"
 
     ssh sempre@$HOST_ADDRESS <<EOF
