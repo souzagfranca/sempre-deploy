@@ -3,16 +3,18 @@ source ./functions/fc_database.sh
 
 cria_pasta_multinota() {
   ssh sempre@$HOST_ADDRESS <<EOF
-    cp -r /var/www/html/sempre/_lib/file/doc/009000inst /var/www/html/sempre/_lib/file/doc/$DLPD
-    cp -r /var/www/html/sempre/_lib/file/img/009000inst /var/www/html/sempre/_lib/file/img/$DLPD
-    chmod -Rf 777 /var/www/html/sempre/_lib/file/doc/$DLPD
-    chmod -Rf 777 /var/www/html/sempre/_lib/file/img/$DLPD
+    set -e
 
-    cd /var/www/html/sempre/_FISCAL/009000inst
-    cp -r * /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL
-    chmod -Rf 777 /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL
-    cd /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL
-    rename 's/9000/${DLPD_NO_ZEROS}/' CTE9000 MDFE9000 NFCE9000 NFE9000 NFSE9000 tmp9000
+    cp -r /var/www/html/sempre/_lib/file/doc/009000inst /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
+    cp -r /var/www/html/sempre/_lib/file/img/009000inst /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
+    chmod -Rf 777 /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
+    chmod -Rf 777 /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
+
+    cd /var/www/html/sempre/_FISCAL/009000inst || exit 1
+    cp -r * /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
+    cd /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
+    rename 's/9000/${DLPD_NO_ZEROS}/' CTE9000 MDFE9000 NFCE9000 NFE9000 NFSE9000 tmp9000 || exit 1
+    chmod -Rf 777 /var/www/html/sempre/_FISCAL/009999 || true
 EOF
 }
 

@@ -122,7 +122,7 @@ fc_instala_multinota() {
     echo
 
     cria_pasta_multinota
-    if [ $? -eq 1 ]; then
+    if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Estrutura de pasta multinota criada com sucesso ✓${RESET}"
     else
         echo -e "${RED}Erro ao criar pastas ❌${RESET}"
