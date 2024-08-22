@@ -1,5 +1,5 @@
 source ./config/var.sh
-source ./functions/fc_database.sh
+source ./functions/fc_newdlpd.sh
 
 cria_pasta_multinota() {
   ssh sempre@$HOST_ADDRESS <<EOF
@@ -30,12 +30,12 @@ insere_new_empresa() {
     FROM db_gol.tb_cnae 
     WHERE id_cnae = '${DATA_ARRAY[4]}'"
 
-    RESULT_SELECT_CNAE=$(ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$SELECT_CNAE\" -t -A")
+  RESULT_SELECT_CNAE=$(ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$SELECT_CNAE\" -t -A")
 
-    if [ -z "$RESULT_SELECT_CNAE" ]; then
-        INSERT_CNAE="INSERT INTO db_gol.tb_cnae(descricao, id_cnae, dt_inc, dt_atu, login) VALUES ('OUTROS', '${DATA_ARRAY[4]}', NOW(), NULL, 'admin');"
-        ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$INSERT_CNAE\""
-    fi
+  if [ -z "$RESULT_SELECT_CNAE" ]; then
+    INSERT_CNAE="INSERT INTO db_gol.tb_cnae(descricao, id_cnae, dt_inc, dt_atu, login) VALUES ('OUTROS', '${DATA_ARRAY[4]}', NOW(), NULL, 'admin');"
+    ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$INSERT_CNAE\""
+  fi
 
   ssh sempre@$HOST_ADDRESS <<EOF
     psql -U postgres -d db_$DLPD_PRINCIPAL << 'SQL'
@@ -338,7 +338,6 @@ SELECT $DLPD_NO_ZEROS, id_plano_conta, desc_plano_conta, sintetico, dt_inc,
 	SELECT id_plano_conta FROM db_gol.tb_plano_conta WHERE id_empresa = $DLPD_NO_ZEROS
   ) ) ;
 
-
 DELETE FROM db_gol.tb_msysparam where id_empresa = $DLPD_NO_ZEROS;
 DELETE FROM db_cte.tb_msysparam_cte where id_empresa = $DLPD_NO_ZEROS;
 
@@ -348,7 +347,6 @@ SELECT $DLPD_NO_ZEROS, tx_descricao, tx_tipo_dado, tx_rotulo, tx_ajuda,
   FROM db_gol.tb_parametro WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL AND (id_empresa, tx_descricao) NOT IN (
 	SELECT id_empresa, tx_descricao FROM db_gol.tb_parametro WHERE id_empresa = $DLPD_NO_ZEROS
  ));
-
 
 INSERT INTO db_gol.tb_msysparam(
             id_empresa, conta_rec, conta_pg, conta_juros_rec, conta_juros_pg, 
@@ -495,12 +493,12 @@ SELECT $DLPD_NO_ZEROS, tx_versao_layout_cte, nu_formato_impressao, nu_forma_emis
        nu_rntrc, tx_apolice, tx_nome_seguradora, nu_perc_icms, tx_cst_padrao, 
        vr_perc_red_bc, tx_carrega_munic_inicio
   FROM db_cte.tb_msysparam_cte WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL);
--- NCM
+
 INSERT INTO db_gol.tb_ncm (
 SELECT id_ncm, descricao, dt_inc, dt_atu, login, nu_ex, nu_tabela, nu_aliqnac, 
        nu_aliqimp, nu_versao, descricao_ibpt, $DLPD_NO_ZEROS, tx_cod_cest
   FROM db_gol.tb_ncm WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL);
--- SITUACAO TRIBUTARIA
+
 INSERT INTO db_gol.tb_sit_tributaria(
 SELECT aliquota_credito_csosn, csosn, cst, cst_fora, descricao, dt_atu, 
       dt_inc, $DLPD_NO_ZEROS, id_sit_tributaria, login, modalidade_subs, 
@@ -512,7 +510,6 @@ SELECT aliquota_credito_csosn, csosn, cst, cst_fora, descricao, dt_atu,
  FROM db_gol.tb_sit_tributaria WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL
 );
 
---PRODUTO TRIBUTO
 INSERT INTO db_gol.tb_produto_tributo (
 SELECT $DLPD_NO_ZEROS, id_produto, id_sit_tributaria, per_cofins, per_ipi, 
       per_mva, per_pis, sit_trib_ipi, tipo_ipi, vr_preco_pauta, cst_cofins, 
@@ -520,7 +517,6 @@ SELECT $DLPD_NO_ZEROS, id_produto, id_sit_tributaria, per_cofins, per_ipi,
  FROM db_gol.tb_produto_tributo WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL
 );
 
--- CFOP
 INSERT INTO db_gol.tb_cfop(
 SELECT		id_cfop
 		, descricao
@@ -538,7 +534,6 @@ SELECT		id_cfop
  FROM db_gol.tb_cfop WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL
 );
 
--- ICMS UF
 INSERT INTO db_gol.tb_icms_uf (
 SELECT $DLPD_NO_ZEROS, id_uf, perc_icms, dt_inc, dt_atu, login
 FROM db_gol.tb_icms_uf WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL
@@ -548,15 +543,35 @@ INSERT INTO db_gol.tb_atalho (
 SELECT id_nome_apl, $DLPD_NO_ZEROS, tx_descricao, tx_icone, tx_ativo, dt_inc, 
        dt_atu, login
   FROM db_gol.tb_atalho WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL);
---@@
+
 INSERT INTO db_gol.tb_atalho_grupo (
 SELECT id_atalho_grupo, $DLPD_NO_ZEROS, tx_descricao, dt_inc, dt_atu, login, 
        tx_ativo
   FROM db_gol.tb_atalho_grupo WHERE id_empresa = $DLPD_NO_ZEROS_PRINCIPAL);
 
--- ROLLBACK;
 COMMIT;
 
 SQL
 EOF
 }
+
+config_parametros_multinota() {
+
+  UPDATE_PARAMETRO="
+  UPDATE db_gol.tb_msysparam SET
+	  cadastro_multi='S',
+	  nfe_amb='1';
+  
+  UPDATE db_gol.tb_parametro SET 
+    tx_valor='S'
+  WHERE tx_descricao='utiliza_multinota'"
+
+  ssh sempre@$HOST_ADDRESS <<EOF
+  psql -U postgres -d db_$DLPD_PRINCIPAL -c "$UPDATE_PARAMETRO"
+EOF
+
+}
+
+export -f insere_new_empresa
+export -f executa_script_multinota
+export -f config_parametros_multinota
