@@ -5,25 +5,30 @@ source ./functions/fc_multinota.sh
 source ./functions/functions.sh
 
 solicita_dados_caso_multinota_multiempresa() {
-    read -p "Digite o número do DLPD principal (Ex: 001234/012345): " DLPD_PRINCIPAL
-    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD_PRINCIPAL"
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD_PRINCIPAL"
-    echo -e "DLPD principal: ${GREEN}$RAZAO_SOCIAL${RESET}"
+
+    read -p "Qual é o DLPD principal? (Ex: 001234/012345):" DLPD_PRINCIPAL
+    valida_dlpd_tamanho "$DLPD_PRINCIPAL"
+    DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS_PRINCIPAL"
+    echo -e "${YELLOW}DLPD principal: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Digite o número do novo DLPD (Ex: 001234/012345): " DLPD
-    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD"
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD"
-    echo -e "Novo DLPD: ${GREEN}$RAZAO_SOCIAL${RESET}"
+    read -p "Qual é o novo DLPD? (Ex: 001234/012345):" DLPD
+    valida_dlpd_tamanho "$DLPD"
+    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"
+    echo -e "${YELLOW}Novo DLPD: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Digite o link do DLPD principal (Ex: sempre): " LINK
+    read -p "Qual é o link do DLPD principal? (Ex: sempre):" LINK
+    verifica_quantidade_de_caracteres "$LINK"
     echo
 
-    echo "Em qual servidor o DLPD principal $DLPD_PRINCIPAL se encontra?:"
+    echo -e "${YELLOW}Em qual servidor o DLPD principal $DLPD_NO_ZEROS_PRINCIPAL se encontra?:${RESET}"
+    echo
     escolhe_servidor
     if [ $? -eq 0 ]; then
-        echo -e "O DLPD principal $DLPD_PRINCIPAL está no servidor ${GREEN}⮞ $server${RESET} com IP $HOST_ADDRESS"
+        echo -e "${GREEN}⮞ O DLPD principal $DLPD_NO_ZEROS_PRINCIPAL está no servidor ${YELLOW}$server${RESET} com IP $HOST_ADDRESS"
     else
         echo -e "${RED}Opção inválida. Tente novamente. ❌${RESET}"
         exit 1
@@ -31,8 +36,9 @@ solicita_dados_caso_multinota_multiempresa() {
     echo
 }
 
-cria_pastas_novodlpd_multiempresa() {
-    cria_pastas
+regra_para_criar_pastas_novodlpd_e_multiempresa() {
+
+    cria_pastas_para_novo_dlpd
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Estrutura de pasta concluída com sucesso ✓${RESET}"
     else
@@ -44,6 +50,7 @@ cria_pastas_novodlpd_multiempresa() {
 }
 
 atualiza_axm_para_todos_tipos() {
+
     atualiza_licenca_axm
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Licença do novo DLPD $DLPD_NO_ZEROS atualizado com sucesso ✓${RESET}"
@@ -55,7 +62,8 @@ atualiza_axm_para_todos_tipos() {
 }
 
 cadastra_nova_empresa_caso_multinota_multiempresa() {
-    insere_new_empresa
+
+    insere_nova_empresa
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ O novo DLPD $DLPD_NO_ZEROS foi cadastrado no DLPD principal $DLPD_NO_ZEROS_PRINCIPAL ✓${RESET}"
     else
@@ -66,43 +74,50 @@ cadastra_nova_empresa_caso_multinota_multiempresa() {
 }
 
 fc_instala_novo_dlpd() {
-    read -p "Qual o número do novo DLPD? (Ex: 001234/012345): " DLPD
-    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD"
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD"
-    echo -e "Novo DLPD: ${GREEN}$RAZAO_SOCIAL${RESET}"
+
+    read -p "Qual é o número do novo DLPD? (Ex: 001234/012345):" DLPD
+    valida_dlpd_tamanho "$DLPD"
+    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"
+    echo -e "${YELLOW}Novo DLPD: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Digite o link criado na AWS (Ex: sempre): " LINK
+    read -p "Qual é o link que você criou na AWS para este DLPD? (Ex: sempre):" LINK
+    verifica_quantidade_de_caracteres "$LINK"
     echo
 
-    echo "Escolha o servidor onde deseja instalar o DLPD $DLPD_NO_ZEROS:"
+    echo -e "${YELLOW}Em qual servidor você deseja instalar o novo DLPD $DLPD_NO_ZEROS:${RESET}"
+    echo
     escolhe_servidor
     if [ $? -eq 0 ]; then
-        echo -e "Você escolheu o servidor ${GREEN}⮞ $server${RESET} com IP $HOST_ADDRESS"
+        echo -e "${GREEN}⮞ Você escolheu o servidor ${YELLOW}$server${RESET} ${GREEN}com IP${RESET} $HOST_ADDRESS"
     else
         echo "${RED}⮞ Opção inválida. Tente novamente. ❌${RESET}"
     fi
     echo
 
-    altera_inc_empresa
+    altera_arquivo_inc_empresa
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}⮞ linha inserida no arquivo inc_empresa.php do servidor $server ✓${RESET}"
+        echo -e "${GREEN}⮞ Empresa inserida no arquivo inc_empresa.php do servidor ${YELLOW}$server${RESET} ✓"
     else
-        echo -e "${RED}⮞ Erro ao inserir linha na inc_empresa.php do servidor $server ❌${RESET}"
+        echo -e "${RED}⮞ Erro ao inserir empresa no arquivo inc_empresa.php do servidor $server ❌${RESET}"
     fi
     echo
 
+    echo -e "${YELLOW}Qual é o produto que o DLPD $DLPD_NO_ZEROS adquiriu?:${RESET}"
+    echo
     escolhe_produto
     if [ $? -eq 0 ]; then
-        echo -e "Você escolheu o produto ${GREEN}⮞ $produto${RESET}"
+        echo -e "${GREEN}⮞ Você escolheu o produto ${YELLOW}$produto${RESET}"
     else
         echo "${RED}⮞ Opção inválida. Tente novamente. ❌${RESET}"
+        exit 1
     fi
     echo
 
-    cria_pastas_novodlpd_multiempresa
+    regra_para_criar_pastas_novodlpd_e_multiempresa
 
-    cria_db
+    cria_novo_banco_de_dados
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Banco de dados criado e restaurado com sucesso ✓${RESET}"
     else
@@ -131,7 +146,7 @@ fc_instala_novo_dlpd() {
     fi
     echo
 
-    insere_dados_DLPD
+    atualiza_dados_na_tb_empresa
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Dados do intranet cadastrados com sucesso ✓${RESET}"
     else
@@ -169,7 +184,7 @@ fc_instala_multinota() {
     fi
     echo
 
-    config_parametros_multinota
+    configura_parametros_multinota
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ Parâmetros para multinota configurados ✓${RESET}"
     else
@@ -188,7 +203,7 @@ fc_instala_multiempresa() {
 
     solicita_dados_caso_multinota_multiempresa
 
-    cria_pastas_novodlpd_multiempresa
+    regra_para_criar_pastas_novodlpd_e_multiempresa
 
     cadastra_nova_empresa_caso_multinota_multiempresa
 
@@ -218,11 +233,12 @@ executa_tipo_instalacao() {
         ["Novo DLPD"]="novo_dlpd"
         ["Multi Nota"]="multi_nota"
         ["Multi Empresa"]="multi_empresa"
+        ["Cancelar Operação"]="cancelar"
     )
 
     layout
 
-    echo "Escolha o tipo de instalação:"
+    echo -e "${YELLOW}Escolha o tipo de instalação:${RESET}"
     select tipo in "${!tipo_instalacao[@]}"; do
         vlr_tipo=${tipo_instalacao[$tipo]}
 
@@ -238,6 +254,9 @@ executa_tipo_instalacao() {
         "multi_empresa")
             fc_instala_multiempresa
             break
+            ;;
+        "cancelar")
+            exit 0
             ;;
         *) ;;
         esac

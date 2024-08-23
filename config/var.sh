@@ -7,6 +7,7 @@ export DLPD_NO_ZEROS=""
 export DLPD_PRINCIPAL=""
 export DLPD_NO_ZEROS_PRINCIPAL=""
 export LINK=""
+export RAZAO_SOCIAL=""
 
 export CYAN="\e[36m"
 export GREEN="\e[32m"

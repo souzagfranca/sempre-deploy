@@ -1,7 +1,7 @@
 source ./config/var.sh
 source ./config/conn.sh
 
-altera_inc_empresa() {
+altera_arquivo_inc_empresa() {
 
 connect_server "$HOST_ADDRESS" <<EOF
     awk '
@@ -40,7 +40,7 @@ EOF
 
 }
 
-cria_pastas() {
+cria_pastas_para_novo_dlpd() {
 
 connect_server "$HOST_ADDRESS" <<EOF
     cp -r /var/www/html/sempre/_lib/file/doc/009000inst /var/www/html/sempre/_lib/file/doc/$DLPD
@@ -64,7 +64,7 @@ EOF
 
 }
 
-cria_db() {
+cria_novo_banco_de_dados() {
 
 connect_server "172.16.1.19" <<EOF
     pg_dump -U postgres -Fc $PROD_SELECTED -f /tmp/${PROD_SELECTED}_backup.dump
@@ -355,7 +355,7 @@ obtem_dados_dlpd(){
 
 }
 
-insere_dados_DLPD() {
+atualiza_dados_na_tb_empresa() {
 
     DATA=$(obtem_dados_dlpd)
     IFS=';' read -r -a DATA_ARRAY <<<"$DATA"
@@ -431,10 +431,10 @@ atualiza_licenca_axm() {
 
 }
 
-export -f altera_inc_empresa
-export -f cria_pastas
-export -f cria_db
+export -f altera_arquivo_inc_empresa
+export -f cria_pastas_para_novo_dlpd
+export -f cria_novo_banco_de_dados
 export -f executa_altera_empresa
 export -f insere_contrato
-export -f insere_dados_DLPD
+export -f atualiza_dados_na_tb_empresa
 export -f atualiza_licenca_axm

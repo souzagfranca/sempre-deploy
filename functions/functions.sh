@@ -20,24 +20,25 @@ layout() {
 
 }
 
-valida_dlpd_caracteres_e_cria_variavel_sem_zeros() {
+valida_dlpd_tamanho() {
 
-    local DLPD="$1"
-    local DLPD_PRINCIPAL="$1"
+    local dlpd_local="$1"
 
-    if [[ ! $DLPD =~ ^[0-9]{6}$ ]]; then
+    if [[ ! $dlpd_local =~ ^[0-9]{6}$ ]]; then
         echo -e "${VERMELHO}Erro:${NC} Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos."
         exit 1
     fi
+}
 
-    if [[ ! $DLPD_PRINCIPAL =~ ^[0-9]{6}$ ]]; then
-        echo -e "${VERMELHO}Erro:${NC} Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos."
+verifica_quantidade_de_caracteres() {
+    
+    local minha_string=$1
+    local tamanho=${#minha_string}
+
+    if [[ $tamanho -gt 30 ]]; then
+        echo "Link inválido: contém mais de 30 caracteres."
         exit 1
     fi
-
-    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
-    DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
-
 }
 
 escolhe_servidor() {
@@ -68,7 +69,6 @@ escolhe_servidor() {
             return 1
         fi
     done
-
 }
 
 escolhe_produto() {
@@ -91,7 +91,6 @@ escolhe_produto() {
         ["Sempre Vest Lite"]="db_instalacaovestlite"
     )
 
-    echo "Escolha o produto do DLPD $DLPD:"
     select produto in "${!bases[@]}"; do
         if [[ -n "$produto" ]]; then
             PROD_SELECTED="${bases[$produto]}"
@@ -123,11 +122,10 @@ verifica_se_existe_o_dlpd_no_intranet() {
     else
         RAZAO_SOCIAL="$RESULT"
     fi
-
 }
 
 export -f layout
-export -f valida_dlpd_caracteres_e_cria_variavel_sem_zeros
+export -f valida_dlpd_tamanho
 export -f escolhe_servidor
 export -f escolhe_produto
 export -f verifica_se_existe_o_dlpd_no_intranet

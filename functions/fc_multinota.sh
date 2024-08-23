@@ -20,7 +20,7 @@ connect_server "$HOST_ADDRESS" <<EOF
 EOF
 }
 
-insere_new_empresa() {
+insere_nova_empresa() {
 
   DATA=$(obtem_dados_dlpd)
   IFS=';' read -r -a DATA_ARRAY <<<"$DATA"
@@ -557,7 +557,7 @@ SQL
 EOF
 }
 
-config_parametros_multinota() {
+configura_parametros_multinota() {
 
   UPDATE_PARAMETRO="
   UPDATE db_gol.tb_msysparam SET
@@ -574,6 +574,6 @@ EOF
 
 }
 
-export -f insere_new_empresa
+export -f insere_nova_empresa
 export -f executa_script_multinota
-export -f config_parametros_multinota
+export -f configura_parametros_multinota
