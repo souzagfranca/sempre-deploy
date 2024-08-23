@@ -25,7 +25,7 @@ valida_dlpd_tamanho() {
     local dlpd_local="$1"
 
     if [[ ! $dlpd_local =~ ^[0-9]{6}$ ]]; then
-        echo -e "${VERMELHO}Erro:${NC} Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos."
+        echo -e "${RED}❌Erro: Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos.${RESET}"
         exit 1
     fi
 }
@@ -36,7 +36,7 @@ verifica_quantidade_de_caracteres() {
     local tamanho=${#minha_string}
 
     if [[ $tamanho -gt 30 ]]; then
-        echo "Link inválido: contém mais de 30 caracteres."
+        echo -e "${RED}❌Erro: Link inválido. Contém mais de 30 caracteres.${RESET}"
         exit 1
     fi
 }
@@ -117,7 +117,7 @@ verifica_se_existe_o_dlpd_no_intranet() {
     RESULT=$(psql -U postgres -d $DB_INTRANET -t -c "$SELECT_DLPD")
 
     if [[ -z "$RESULT" ]]; then
-        echo "O DLPD informado não se encontra na base da Sempre Tecnologia."
+        echo -e "${RED}❌Erro: O DLPD informado não se encontra na base de dados da Sempre Tecnologia.${RESET}"
         exit 1
     else
         RAZAO_SOCIAL="$RESULT"
