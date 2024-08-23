@@ -6,13 +6,15 @@ source ./functions/functions.sh
 
 solicita_dados_caso_multinota_multiempresa() {
     read -p "Digite o número do DLPD principal (Ex: 001234/012345): " DLPD_PRINCIPAL
-    valida_dlpd "$DLPD_PRINCIPAL"
-    DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
+    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD_PRINCIPAL"
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD_PRINCIPAL"
+    echo -e "DLPD principal: ${GREEN}$RAZAO_SOCIAL${RESET}"
     echo
 
     read -p "Digite o número do novo DLPD (Ex: 001234/012345): " DLPD
-    valida_dlpd "$DLPD"
-    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD"
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD"
+    echo -e "Novo DLPD: ${GREEN}$RAZAO_SOCIAL${RESET}"
     echo
 
     read -p "Digite o link do DLPD principal (Ex: sempre): " LINK
@@ -65,8 +67,9 @@ cadastra_nova_empresa_caso_multinota_multiempresa() {
 
 fc_instala_novo_dlpd() {
     read -p "Qual o número do novo DLPD? (Ex: 001234/012345): " DLPD
-    valida_dlpd "$DLPD"
-    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+    valida_dlpd_caracteres_e_cria_variavel_sem_zeros "$DLPD"
+    verifica_se_existe_o_dlpd_no_intranet "$DLPD"
+    echo -e "Novo DLPD: ${GREEN}$RAZAO_SOCIAL${RESET}"
     echo
 
     read -p "Digite o link criado na AWS (Ex: sempre): " LINK

@@ -1,6 +1,7 @@
 source ./config/var.sh
 
 layout() {
+
     echo -e
     echo -e "                 ${YELLOW}• SempreDeploy Installer v1.0 •${RESET}"
     echo -e "           (Sistema de Instalação da Sempre Tecnologia)"
@@ -16,14 +17,27 @@ layout() {
     echo -e " ${YELLOW}possa subir a aplicação com excelência.${RESET}"
     echo -e
     echo -e
+
 }
 
-valida_dlpd() {
+valida_dlpd_caracteres_e_cria_variavel_sem_zeros() {
+
     local DLPD="$1"
+    local DLPD_PRINCIPAL="$1"
+
     if [[ ! $DLPD =~ ^[0-9]{6}$ ]]; then
         echo -e "${VERMELHO}Erro:${NC} Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos."
         exit 1
     fi
+
+    if [[ ! $DLPD_PRINCIPAL =~ ^[0-9]{6}$ ]]; then
+        echo -e "${VERMELHO}Erro:${NC} Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos."
+        exit 1
+    fi
+
+    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+    DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
+
 }
 
 escolhe_servidor() {
@@ -54,6 +68,7 @@ escolhe_servidor() {
             return 1
         fi
     done
+
 }
 
 escolhe_produto() {
@@ -88,7 +103,31 @@ escolhe_produto() {
     done
 }
 
+verifica_se_existe_o_dlpd_no_intranet() {
+
+    local RESULT
+    local DLPD_LOCAL="$1"
+
+    SELECT_DLPD="
+        SELECT 
+	        TRIM(REGEXP_REPLACE(tx_razao_social, '[;(),\[\]{}]', '', 'g')) AS tx_razao_social 
+        FROM db_ar.tb_pessoa
+        WHERE id_pessoa=$DLPD_LOCAL
+    "
+
+    RESULT=$(psql -U postgres -d $DB_INTRANET -t -c "$SELECT_DLPD")
+
+    if [[ -z "$RESULT" ]]; then
+        echo "O DLPD informado não se encontra na base da Sempre Tecnologia."
+        exit 1
+    else
+        RAZAO_SOCIAL="$RESULT"
+    fi
+
+}
+
 export -f layout
-export -f valida_dlpd
+export -f valida_dlpd_caracteres_e_cria_variavel_sem_zeros
 export -f escolhe_servidor
 export -f escolhe_produto
+export -f verifica_se_existe_o_dlpd_no_intranet
