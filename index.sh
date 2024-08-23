@@ -64,7 +64,7 @@ cadastra_nova_empresa_caso_multinota_multiempresa() {
 }
 
 fc_instala_novo_dlpd() {
-    read -p "Digite o número do novo DLPD (Ex: 001234/012345): " DLPD
+    read -p "Qual o número do novo DLPD? (Ex: 001234/012345): " DLPD
     valida_dlpd "$DLPD"
     DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
     echo
@@ -72,7 +72,7 @@ fc_instala_novo_dlpd() {
     read -p "Digite o link criado na AWS (Ex: sempre): " LINK
     echo
 
-    echo "Escolha o servidor onde deseja instalar o DLPD $DLPD:"
+    echo "Escolha o servidor onde deseja instalar o DLPD $DLPD_NO_ZEROS:"
     escolhe_servidor
     if [ $? -eq 0 ]; then
         echo -e "Você escolheu o servidor ${GREEN}⮞ $server${RESET} com IP $HOST_ADDRESS"

@@ -1,7 +1,9 @@
 source ./config/var.sh
+source ./config/conn.sh
 
 insere_contrato_multiempresa() {
-    ssh sempre@$HOST_ADDRESS <<EOF
+
+connect_server "$HOST_ADDRESS" <<EOF
     psql -U postgres -d db_contrato << 'SQL'
     INSERT INTO db_contratos.tb_contratos(
         id_empresa, tx_nome_bd, tx_url, id_cobranca, 
@@ -20,7 +22,8 @@ EOF
 }
 
 executa_script_multiempresa() {
-    ssh sempre@$HOST_ADDRESS <<EOF
+
+connect_server "$HOST_ADDRESS" <<EOF
     psql -U postgres -d db_$DLPD_PRINCIPAL << 'SQL'
     DELETE FROM db_gol.tb_msysparam WHERE id_empresa = $DLPD_NO_ZEROS; 
     DELETE FROM db_gol.tb_parametro WHERE id_empresa = $DLPD_NO_ZEROS;
@@ -306,6 +309,7 @@ executa_script_multiempresa() {
     FROM db_gol.tb_atalho_grupo_item WHERE id_empresa =  $DLPD_NO_ZEROS_PRINCIPAL);
 SQL
 EOF
+
 }
 
 export -f insere_contrato_multiempresa

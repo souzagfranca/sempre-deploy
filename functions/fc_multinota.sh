@@ -1,20 +1,22 @@
 source ./config/var.sh
 source ./functions/fc_newdlpd.sh
+source ./config/conn.sh
 
 cria_pasta_multinota() {
-  ssh sempre@$HOST_ADDRESS <<EOF
-    set -e
 
-    cp -r /var/www/html/sempre/_lib/file/doc/009000inst /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
-    cp -r /var/www/html/sempre/_lib/file/img/009000inst /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
-    chmod -Rf 777 /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
-    chmod -Rf 777 /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
+connect_server "$HOST_ADDRESS" <<EOF
+  set -e
 
-    cd /var/www/html/sempre/_FISCAL/009000inst || exit 1
-    cp -r * /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
-    cd /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
-    rename 's/9000/${DLPD_NO_ZEROS}/' CTE9000 MDFE9000 NFCE9000 NFE9000 NFSE9000 tmp9000 || exit 1
-    chmod -Rf 777 /var/www/html/sempre/_FISCAL/009999 || true
+  cp -r /var/www/html/sempre/_lib/file/doc/009000inst /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
+  cp -r /var/www/html/sempre/_lib/file/img/009000inst /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
+  chmod -Rf 777 /var/www/html/sempre/_lib/file/doc/$DLPD || exit 1
+  chmod -Rf 777 /var/www/html/sempre/_lib/file/img/$DLPD || exit 1
+
+  cd /var/www/html/sempre/_FISCAL/009000inst || exit 1
+  cp -r * /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
+  cd /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || exit 1
+  rename 's/9000/${DLPD_NO_ZEROS}/' CTE9000 MDFE9000 NFCE9000 NFE9000 NFSE9000 tmp9000 || exit 1
+  chmod -Rf 777 /var/www/html/sempre/_FISCAL/$DLPD_PRINCIPAL || true
 EOF
 }
 
@@ -30,14 +32,14 @@ insere_new_empresa() {
     FROM db_gol.tb_cnae 
     WHERE id_cnae = '${DATA_ARRAY[4]}'"
 
-  RESULT_SELECT_CNAE=$(ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$SELECT_CNAE\" -t -A")
+  RESULT_SELECT_CNAE=$(connect_server "$HOST_ADDRESS" "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$SELECT_CNAE\" -t -A")
 
   if [ -z "$RESULT_SELECT_CNAE" ]; then
     INSERT_CNAE="INSERT INTO db_gol.tb_cnae(descricao, id_cnae, dt_inc, dt_atu, login) VALUES ('OUTROS', '${DATA_ARRAY[4]}', NOW(), NULL, 'admin');"
-    ssh sempre@$HOST_ADDRESS "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$INSERT_CNAE\""
+    connect_server "$HOST_ADDRESS" "psql -U postgres -d db_$DLPD_PRINCIPAL -c \"$INSERT_CNAE\""
   fi
 
-  ssh sempre@$HOST_ADDRESS <<EOF
+  connect_server "$HOST_ADDRESS" <<EOF
     psql -U postgres -d db_$DLPD_PRINCIPAL << 'SQL'
     INSERT INTO db_gol.tb_empresa (
       id_empresa, 
@@ -319,7 +321,7 @@ EOF
 }
 
 executa_script_multinota() {
-  ssh sempre@$HOST_ADDRESS <<EOF
+  connect_server "$HOST_ADDRESS" <<EOF
     psql -U postgres -d db_$DLPD_PRINCIPAL << 'SQL'
     BEGIN;
 INSERT INTO db_gol.tb_formapg
@@ -566,7 +568,7 @@ config_parametros_multinota() {
     tx_valor='S'
   WHERE tx_descricao='utiliza_multinota'"
 
-  ssh sempre@$HOST_ADDRESS <<EOF
+  connect_server "$HOST_ADDRESS" <<EOF
   psql -U postgres -d db_$DLPD_PRINCIPAL -c "$UPDATE_PARAMETRO"
 EOF
 
