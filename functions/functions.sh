@@ -26,19 +26,21 @@ valida_dlpd_tamanho() {
 
     if [[ ! $dlpd_local =~ ^[0-9]{6}$ ]]; then
         echo -e "${RED}❌Erro: Código DLPD inválido. O código DLPD deve conter exatamente 6 dígitos numéricos.${RESET}"
-        exit 1
+        return 1
     fi
+    return 0
 }
 
 verifica_quantidade_de_caracteres() {
-    
+
     local minha_string=$1
     local tamanho=${#minha_string}
 
     if [[ $tamanho -gt 30 ]]; then
         echo -e "${RED}❌Erro: Link inválido. Contém mais de 30 caracteres.${RESET}"
-        exit 1
+        return 1
     fi
+    return 0
 }
 
 escolhe_servidor() {
@@ -109,7 +111,7 @@ verifica_se_existe_o_dlpd_no_intranet() {
 
     SELECT_DLPD="
         SELECT 
-	        TRIM(REGEXP_REPLACE(tx_razao_social, '[;(),\[\]{}]', '', 'g')) AS tx_razao_social 
+	        id_pessoa || ' - ' ||TRIM(REGEXP_REPLACE(tx_razao_social, '[;(),\[\]{}]', '', 'g')) AS tx_razao_social 
         FROM db_ar.tb_pessoa
         WHERE id_pessoa=$DLPD_LOCAL
     "
@@ -118,9 +120,10 @@ verifica_se_existe_o_dlpd_no_intranet() {
 
     if [[ -z "$RESULT" ]]; then
         echo -e "${RED}❌Erro: O DLPD informado não se encontra na base de dados da Sempre Tecnologia.${RESET}"
-        exit 1
+        return 1
     else
         RAZAO_SOCIAL="$RESULT"
+        return 0
     fi
 }
 

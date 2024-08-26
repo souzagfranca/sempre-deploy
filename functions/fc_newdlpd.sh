@@ -333,7 +333,7 @@ obtem_dados_dlpd(){
         TRIM(REGEXP_REPLACE(a.tx_endereco_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_endereco_empresa,
         TRIM(REGEXP_REPLACE(a.nu_endereco_empresa_numero, '[;(),\[\]{}]', '', 'g')) AS nu_endereco_empresa_numero,
         TRIM(REGEXP_REPLACE(a.tx_endereco_complemento_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_endereco_complemento_empresa,
-        TRIM(REGEXP_REPLACE(a.tx_bairro_empresa, '[;(),\[\]{}]', '', 'g')) AS tx_bairro_empresa,
+        SUBSTRING(TRIM(REGEXP_REPLACE(a.tx_bairro_empresa, '[;(),\[\]{}]', '', 'g')) FROM 1 FOR 30 ) AS tx_bairro_empresa,
         TRIM(REGEXP_REPLACE(b.nome_munic, '[;(),\[\]{}]', '', 'g')) AS nome_munic,
         TRIM(REGEXP_REPLACE(b.sigla_uf, '[;(),\[\]{}]', '', 'g')) AS sigla_uf,
         TRIM(REGEXP_REPLACE(b.ibge_cod_mun, '[;(),\[\]{}]', '', 'g')) AS ibge_cod_mun,

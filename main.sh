@@ -6,26 +6,62 @@ source ./functions/functions.sh
 
 solicita_dados_caso_multinota_multiempresa() {
 
-    read -p "Qual é o DLPD principal? (Ex: 001234/012345):" DLPD_PRINCIPAL
-    valida_dlpd_tamanho "$DLPD_PRINCIPAL"
-    DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS_PRINCIPAL"
+    while true; do
+        read -p "Qual é o DLPD principal? (Ex: 001234/012345):" DLPD_PRINCIPAL
+
+        DLPD_NO_ZEROS_PRINCIPAL=$(echo $DLPD_PRINCIPAL | sed 's/^0*//')
+
+        if ! valida_dlpd_tamanho "$DLPD_PRINCIPAL"; then
+            echo "Tente novamente."
+            continue
+        fi
+
+        if ! verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS_PRINCIPAL"; then
+            echo "Tente novamente."
+            continue
+        fi
+        break
+    done
+
+    echo
     echo -e "${YELLOW}DLPD principal: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Qual é o novo DLPD? (Ex: 001234/012345):" DLPD
-    valida_dlpd_tamanho "$DLPD"
-    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"
+    while true; do
+        read -p "Qual é o novo DLPD? (Ex: 001234/012345):" DLPD
+
+        DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+
+        if ! valida_dlpd_tamanho "$DLPD"; then
+            echo "Tente novamente."
+            continue
+        fi
+
+        if ! verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"; then
+            echo "Tente novamente."
+            continue
+        fi
+        break
+    done
+    
+    echo
     echo -e "${YELLOW}Novo DLPD: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Qual é o link do DLPD principal? (Ex: sempre):" LINK
-    verifica_quantidade_de_caracteres "$LINK"
-    echo
+    while true; do
+        read -p "Qual é o link do DLPD principal? (Ex: sempre):" LINK
 
+        if ! verifica_quantidade_de_caracteres "$LINK"; then
+            echo "Tente novamente."
+            continue
+        fi
+        break
+    done
+
+    echo
     echo -e "${YELLOW}Em qual servidor o DLPD principal $DLPD_NO_ZEROS_PRINCIPAL se encontra?:${RESET}"
     echo
+
     escolhe_servidor
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}⮞ O DLPD principal ${YELLOW}$DLPD_NO_ZEROS_PRINCIPAL${RESET} se encontra no servidor ${YELLOW}$server${RESET} com IP $HOST_ADDRESS"
@@ -53,7 +89,7 @@ atualiza_axm_para_todos_tipos() {
 
     atualiza_licenca_axm
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}⮞ Licença do novo DLPD ${YELLOW}$DLPD_NO_ZEROS${RESET} atualizado com sucesso ✓${RESET}"
+        echo -e "${GREEN}⮞ Licença do novo DLPD ${YELLOW}$DLPD_NO_ZEROS${RESET} ${GREEN}atualizado com sucesso ✓${RESET}"
     else
         echo -e "${RED}❌Erro: Não foi possível atualizar licença.${RESET}"
         exit 1
@@ -75,15 +111,37 @@ cadastra_nova_empresa_caso_multinota_multiempresa() {
 
 fc_instala_novo_dlpd() {
 
-    read -p "Qual é o número do novo DLPD? (Ex: 001234/012345):" DLPD
-    valida_dlpd_tamanho "$DLPD"
-    DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
-    verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"
+    while true; do
+        read -p "Qual é o número do novo DLPD? (Ex: 001234/012345):" DLPD
+
+        DLPD_NO_ZEROS=$(echo $DLPD | sed 's/^0*//')
+
+        if ! valida_dlpd_tamanho "$DLPD"; then
+            echo "Tente novamente."
+            continue
+        fi
+
+        if ! verifica_se_existe_o_dlpd_no_intranet "$DLPD_NO_ZEROS"; then
+            echo "Tente novamente"
+            continue
+        fi
+
+        break
+    done
+
     echo -e "${YELLOW}Novo DLPD: $RAZAO_SOCIAL${RESET}"
     echo
 
-    read -p "Qual é o link que você criou na AWS para este DLPD? (Ex: sempre):" LINK
-    verifica_quantidade_de_caracteres "$LINK"
+    while true; do
+        read -p "Qual é o link que você criou na AWS para este DLPD? (Ex: sempre):" LINK
+
+        if ! verifica_quantidade_de_caracteres "$LINK"; then
+            echo "Tente novamente."
+            continue
+        fi
+
+        break
+    done
     echo
 
     echo -e "${YELLOW}Em qual servidor você deseja instalar o novo DLPD $DLPD_NO_ZEROS:${RESET}"
@@ -96,14 +154,6 @@ fc_instala_novo_dlpd() {
     fi
     echo
 
-    altera_arquivo_inc_empresa
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}⮞ Empresa inserida no arquivo inc_empresa do servidor ${YELLOW}$server${RESET} ✓"
-    else
-        echo -e "${RED}❌Erro: Não foi possível inserir empresa no arquivo inc_empresa do servidor $server.${RESET}"
-    fi
-    echo
-
     echo -e "${YELLOW}Qual é o produto que o DLPD $DLPD_NO_ZEROS adquiriu?:${RESET}"
     echo
     escolhe_produto
@@ -112,6 +162,14 @@ fc_instala_novo_dlpd() {
     else
         echo "${RED}❌Erro: Opção inválida. Tente novamente.${RESET}"
         exit 1
+    fi
+    echo
+
+    altera_arquivo_inc_empresa
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}⮞ Empresa inserida no arquivo inc_empresa do servidor ${YELLOW}$server${RESET} ✓"
+    else
+        echo -e "${RED}❌Erro: Não foi possível inserir empresa no arquivo inc_empresa do servidor $server.${RESET}"
     fi
     echo
 
@@ -159,7 +217,7 @@ fc_instala_novo_dlpd() {
 
     atualiza_axm_para_todos_tipos
 
-    echo -e "${GREEN}⮞ Novo DLPD ${YELLOW}$DLPD_NO_ZEROS${RESET} instalado com sucesso! ✓${RESET}"
+    echo -e "${GREEN}⮞ Novo DLPD ${YELLOW}$DLPD_NO_ZEROS${RESET} ${GREEN}instalado com sucesso! ✓${RESET}"
 }
 
 fc_instala_multinota() {
@@ -234,7 +292,6 @@ fc_instala_multiempresa() {
     atualiza_axm_para_todos_tipos
 
     echo -e "${GREEN}⮞ O novo DLPD ${YELLOW}$DLPD_NO_ZEROS${RESET} foi instalado com sucesso no DLPD principal ${YELLOW}$DLPD_NO_ZEROS_PRINCIPAL${RESET} ✓${RESET}"
-
 }
 
 executa_tipo_instalacao() {
@@ -271,7 +328,6 @@ executa_tipo_instalacao() {
         *) ;;
         esac
     done
-
 }
 
 executa_tipo_instalacao
